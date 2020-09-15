@@ -63,30 +63,65 @@ export default class Keyboard {
         octave: 5,
       },
     ];
+    this.oscList = {};
     this.audioContext = new AudioContext;
+
+    this.playNote = this.playNote.bind(this);
+    this.stopNote = this.stopNote.bind(this);
   }
 
   createKeyboard() {
     this.element.className = 'keyboard';
 
     this.notesList.forEach((note, index) => {
-      const div = document.createElement('div');
-
-      div.className = 'key';
-      div.dataset.frequency = note.frequency;
-      div.innerHTML = note.note;
-
-      div.addEventListener('click', (event) => {
-        let oscillator = this.audioContext.createOscillator;
-
-        oscillator.frequency.value = event.dataset.frequency;
-        oscillator.play();
-        oscillator.connect(this.audioContext.destination);
-      });
+      const div = this.createKey(note, index);
+      div.addEventListener('mousedown', this.playNote);
+      div.addEventListener('mouseup', this.stopNote);
 
       this.element.appendChild(div);
     });
   }
 
-  createKey() {}
+  /**
+   * @param object note
+   * @param string key
+   */
+  createKey(note, key) {
+    const div = document.createElement('div');
+
+    div.className = 'key';
+
+    if (note.note.length > 1) {
+      div.classList.add('black');
+    }
+
+    div.dataset.frequency = note.frequency;
+    div.dataset.key = key;
+    div.innerHTML = note.note;
+
+    return div;
+  }
+
+  playNote(event) {
+    const dataset = event.target.dataset;
+    let oscillator = this.oscList[dataset.key];
+    const isInList = !oscillator;
+
+    if (isInList) {
+      oscillator = this.oscList[dataset.key] = this.audioContext.createOscillator();
+    }
+
+    oscillator.connect(this.audioContext.destination);
+    oscillator.frequency.value = event.target.dataset.frequency;
+    oscillator.start();
+  }
+
+  stopNote(event) {
+    const dataset = event.target.dataset;
+    const oscillator = this.oscList[dataset.key];
+
+    oscillator.stop();
+    oscillator.disconnect();
+    delete this.oscList[dataset.key];
+  }
 }

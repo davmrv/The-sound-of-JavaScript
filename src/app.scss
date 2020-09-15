@@ -1,8 +1,15 @@
 .keyboard {
   display: flex;
+
   .key {
     width: 20px;
     height: 100px;
+    padding: 10px;
     border: solid 1px black;
+
+    &.black {
+      background-color: black;
+      color: white;
+    }
   }
 }
