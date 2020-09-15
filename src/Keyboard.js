@@ -77,6 +77,7 @@ export default class Keyboard {
       const div = this.createKey(note, index);
       div.addEventListener('mousedown', this.playNote);
       div.addEventListener('mouseup', this.stopNote);
+      div.addEventListener('mouseleave', this.stopNote);
 
       this.element.appendChild(div);
     });
