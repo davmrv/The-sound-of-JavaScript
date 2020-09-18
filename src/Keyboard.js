@@ -173,7 +173,10 @@ export default class Keyboard {
     ];
     this.oscList = {};
     this.audioContext = new AudioContext;
+    this.mainGain = this.audioContext.createGain();
     this.waveType = 'sine';
+
+    this.setupGain();
     this.setupMidi();
 
     this.playNote = this.playNote.bind(this);
@@ -181,6 +184,10 @@ export default class Keyboard {
     this.playNoteFromKey = this.playNoteFromKey.bind(this);
     this.stopNoteFromKey = this.stopNoteFromKey.bind(this);
     this.setupMidi = this.setupMidi.bind(this);
+  }
+
+  setupGain() {
+    this.mainGain.connect(this.audioContext.destination);
   }
 
   setupMidi() {
@@ -199,11 +206,13 @@ export default class Keyboard {
           const element = document.querySelector(`div[data-frequency="${playedNote.frequency}"`);
 
           if (event.data[0] === midiKeydown) {
+            this.mainGain.gain.setValueAtTime(event.data[2] / 100, this.audioContext.currentTime);
             this.playNote({ target: element });
           }
 
           if (event.data[0] === midiKeyup) {
             this.stopNote({ target: element });
+            this.mainGain.gain.setValueAtTime(1, this.audioContext.currentTime);
           }
         }
       });
@@ -277,7 +286,7 @@ export default class Keyboard {
     }
 
     oscillator.type = this.waveType;
-    oscillator.connect(this.audioContext.destination);
+    oscillator.connect(this.mainGain);
     oscillator.frequency.value = event.target.dataset.frequency;
     oscillator.start();
   }
